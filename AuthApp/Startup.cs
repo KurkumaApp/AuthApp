@@ -6,6 +6,7 @@ using AuthApp.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,23 @@ namespace AuthApp
         {
             services.AddControllers();
 
+            //services.AddCors(options => 
+            //{
+            //    options.AddPolicy("ReactPolicy",
+            //        builder =>
+            //        {
+            //            builder.WithOrigins("http://localhost:63737", "http://localhost:3001")
+            //                .AllowAnyMethod()
+            //                .AllowAnyHeader()
+            //                .AllowCredentials();
+            //        });        
+            //});
+
+            services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "ClientApp/build";
+            });
+
             services.AddDbContext<UserDBContext>(options =>
                 options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));
         }
@@ -40,13 +58,28 @@ namespace AuthApp
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStaticFiles();
+            app.UseSpaStaticFiles();
+
             app.UseRouting();
 
             app.UseAuthorization();
 
+            //app.UseCors("ReactPolicy");
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "ClientApp";
+
+                if (env.IsDevelopment())
+                {
+                    spa.UseReactDevelopmentServer(npmScript: "start");
+                }
             });
         }
     }
